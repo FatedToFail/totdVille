@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>TOTD medal counter</h1>
+    <div id="counter-box">
+        <div>
+            <span>AT</span>
+            <span class="AT">0</span>
+            <span class="AT%">0%</span>
+        </div>
+        <div>
+            <span>gold</span>
+            <span class="gold">0</span>
+            <span class="gold%">0%</span>
+        </div>
+        <div>
+            <span>silver</span>
+            <span class="silver">0</span>
+            <span class="silver%">0%</span>
+        </div>
+        <div>
+            <span>bronze</span>
+            <span class="bronze">0</span>
+            <span class="bronze%">0%</span>
+        </div>
+        <div>
+            <span>medalless</span>
+            <span class="medalless">0</span>
+            <span class="medalless%">0%</span>
+        </div>
+    </div>
+</body>
+<script>
+    let monthCounter = 0
+let ATcounter = 0
+let goldCounter = 0
+let silverCounter = 0
+let bronzeCounter = 0
+let medallessCounter = 0
+
+for (let i = 0; 6 > i; ++i)
+  fetch(`https://trackmania.io/api/totd/${monthCounter}`)
+    .then((response) => response.json())
+    .then((response) => {
+      response.days.forEach((day) => {
+        let leaderboarduid = day.leaderboarduid;
+        let mapUid = day.map.mapUid;
+        let AT = day.map.authorScore;
+        let gold = day.map.goldScore;
+        let silver = day.map.silverScore;
+        let bronze = day.map.bronzeScore;
+        fetch(`https://trackmania.io/api/leaderboard/${leaderboarduid}/${mapUid}?offset=0&length=1`).then(res => res.json()).then(res => {
+          for(let j = 0; res.playercount / 100 > j; ++j) {
+            fetch(`https://trackmania.io/api/leaderboard/${leaderboarduid}/${mapUid}?offset=${j * 100}&length=100`).then(res => res.json()).then(res => {
+              res.tops.forEach(player => {
+                if (AT >= player.time) return ++ATcounter;
+                if (gold >= player.time) return ++goldCounter;
+                if (silver >= player.time) return ++silverCounter;
+                if (bronze >= player.time) return ++goldCounter;
+                return ++medallessCounter;
+              });
+              document.getElementById('AT').innerText = ATcounter;
+              document.getElementById('AT%').innerText = `${(ATcounter / (ATcounter + goldCounter + silverCounter + bronzeCounter + medallessCounter) * 100).toFixed(2)}%`;
+              document.getElementById('gold').innerText = goldCounter;
+              document.getElementById('gold%').innerText = `${(goldCounter / (ATcounter + goldCounter + silverCounter + bronzeCounter + medallessCounter) * 100).toFixed(2)}%`;
+              document.getElementById('silver').innerText = silverCounter;
+              document.getElementById('silver%').innerText = `${(silverCounter / (ATcounter + goldCounter + silverCounter + bronzeCounter + medallessCounter) * 100).toFixed(2)}%`;
+              document.getElementById('bronze').innerText = bronzeCounter;
+              document.getElementById('bronze%').innerText = `${(bronzeCounter / (ATcounter + goldCounter + silverCounter + bronzeCounter + medallessCounter) * 100).toFixed(2)}%`;
+              document.getElementById('medalless').innerText = medallessCounter;
+              document.getElementById('medalless%').innerText = `${(medallessCounter / (ATcounter + goldCounter + silverCounter + bronzeCounter + medallessCounter) * 100).toFixed(2)}%`;
+            })
+          }
+        });
+      });
+    });
+</script>
+</html>
